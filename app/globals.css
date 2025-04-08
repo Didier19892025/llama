@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* styles.css o global.css */
+
+/* Asegúrate de que estás importando Tailwind */
+
+/* Estilos para la barra de desplazamiento */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #6B7280; /* Gris oscuro */
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4B5563; /* Gris más oscuro */
+}
+
+::-webkit-scrollbar-track {
+  background-color: #F3F4F6; /* Gris claro para el track */
+  border-radius: 4px;
+}
+
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #6B7280 #F3F4F6;
+}
