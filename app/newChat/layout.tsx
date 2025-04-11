@@ -7,8 +7,7 @@ const layout: FC<PropsWithChildren> = ({ children }) => {
         <div className="flex h-screen w-full bg-gray-100 overflow-hidden">
             {/* Main content area - takes available space */}
             <div className="flex-1">
-                    <Header />
-
+                <Header />
                 {children}
             </div>
             

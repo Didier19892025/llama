@@ -1,8 +1,5 @@
-"use client"
 
 import Chat from "@/components/Chat";
-
-
 
 const HomePage = () => {
    

@@ -5,13 +5,13 @@ import { useState, useEffect, useRef } from "react";
 
 // Definimos los tipos para TypeScript
 interface Message {
-  sender: 'user' | 'bot';
-  content: string;
+    sender: 'user' | 'bot';
+    content: string;
 }
 
 interface ApiResponse {
-  status: 'good' | 'bad' | 'time_out';
-  answer: string;
+    status: 'good' | 'bad' | 'time_out';
+    answer: string;
 }
 
 const Chat = () => {
@@ -26,62 +26,45 @@ const Chat = () => {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Función para comunicarse con el endpoint real
-   // Función para comunicarse con el endpoint real
-const fetchAnswer = async (query: string): Promise<ApiResponse> => {
-    // Opción para usar mock en desarrollo - descomentar si el endpoint real no está disponible
-    // return await mockFetchAnswer(query);
+    // Función para comunicarse con nuestra API route (proxy)
+    const fetchAnswer = async (query: string): Promise<ApiResponse> => {
+        try {
+            console.log("Intentando conexión con API route local");
     
-    try {
-        console.log("Intentando conexión con:", "https://www.cloudware.com.co/llama_prompt");
-        
-        const response = await fetch("https://www.cloudware.com.co/llama_prompt", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: "XYZ", // Usuario fijo como en las especificaciones
-                query: query
-            }),
-        });
-        
-        console.log("Respuesta recibida:", response);
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
-        }
-
-        const data: ApiResponse = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Error detallado:", error);
-        
-        // Verificar si es un error de red
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-            console.error("Error de red: El servidor no está disponible o hay problemas de conexión");
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: "XYZ",
+                    query: query
+                }),
+            });
+    
+            console.log("Respuesta recibida:", response);
+    
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+            }
+    
+            const responseData = await response.json();
+            console.log("Datos recibidos en el cliente:", responseData);
+            
+            // Manejar caso cuando la respuesta es un array
+            const data: ApiResponse = Array.isArray(responseData) 
+                ? responseData[0] 
+                : responseData;
+                
+            return data;
+        } catch (error) {
+            console.error("Error al intentar obtener respuesta de la API:", error);
             return {
-                status: "bad",
-                answer: "Lo siento, no pude conectar con el servidor. Verifica tu conexión a internet o inténtalo más tarde."
+                status: 'bad',
+                answer: "Lo siento, no se pudo obtener una respuesta. Por favor, inténtalo de nuevo."
             };
         }
-        
-        // Errores HTTP
-        if (error instanceof Error && error.message.includes('Error HTTP')) {
-            return {
-                status: "bad",
-                answer: `Error en la solicitud: ${error.message}. Por favor, inténtalo de nuevo más tarde.`
-            };
-        }
-        
-        // Otros errores
-        return {
-            status: "bad",
-            answer: "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde."
-        };
-    }
-};
-
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -90,51 +73,52 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
         // Agregamos el mensaje del usuario
         const userMessage: Message = { sender: 'user', content: prompt };
         setMessages(prevMessages => [...prevMessages, userMessage]);
-        
+
         // Guardamos el prompt y limpiamos el input
         const currentPrompt = prompt;
         setPrompt('');
-        
+
         // Indicamos que estamos cargando
         setIsLoading(true);
-        
+
         // Resetear altura del textarea
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
         }
-        
+
         try {
             // Llamamos a la API real
             const response = await fetchAnswer(currentPrompt);
-            
+
             // Agregamos la respuesta según el estado
             let botMessage: Message;
-            
+
             switch (response.status) {
                 case "good":
                     botMessage = { sender: 'bot', content: response.answer };
                     break;
                 case "bad":
-                    botMessage = { 
-                        sender: 'bot', 
+                    botMessage = {
+                        sender: 'bot',
                         content: response.answer || "Lo siento, no pude procesar tu solicitud correctamente."
                     };
                     break;
                 case "time_out":
-                    botMessage = { 
-                        sender: 'bot', 
+                    botMessage = {
+                        sender: 'bot',
                         content: "Lo siento, la solicitud ha tardado demasiado tiempo. Por favor, inténtalo de nuevo."
                     };
                     break;
                 default:
-                    botMessage = { 
-                        sender: 'bot', 
+                    botMessage = {
+                        sender: 'bot',
                         content: "Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo."
                     };
             }
-            
+
             setMessages(prevMessages => [...prevMessages, botMessage]);
         } catch (error) {
+            console.error("Error en la solicitud:", error);
             // Manejo de errores en el proceso
             const errorMessage: Message = {
                 sender: 'bot',
@@ -143,6 +127,12 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
             setMessages(prevMessages => [...prevMessages, errorMessage]);
         } finally {
             setIsLoading(false);
+            // Aseguramos que el textarea mantiene el foco después de completar la operación
+            setTimeout(() => {
+                if (textareaRef.current) {
+                    textareaRef.current.focus();
+                }
+            }, 0);
         }
     };
 
@@ -151,7 +141,34 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
+        // Enfocar el textarea después de actualizar los mensajes
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+        }
     }, [messages]);
+
+    // Efecto para asegurar el enfoque inicial cuando se carga el componente
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, []);
+
+    // Efecto para mantener el enfoque cuando el usuario interactúa con otras partes de la página
+    useEffect(() => {
+        const handleClick = () => {
+            if (textareaRef.current && document.activeElement !== textareaRef.current) {
+                textareaRef.current.focus();
+            }
+        };
+
+        // Agregamos el evento al documento entero
+        document.addEventListener('click', handleClick);
+
+        return () => {
+            document.removeEventListener('click', handleClick);
+        };
+    }, []);
 
     // Función para ajustar automáticamente la altura del textarea
     const adjustTextareaHeight = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -167,7 +184,7 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
             <div className="flex-1 p-4">
                 <div
                     ref={chatContainerRef}
-                    className="max-w-4xl mx-auto space-y-6 max-h-[360px]  overflow-y-auto scrollbar-hide"
+                    className="max-w-4xl mx-auto space-y-6 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
                     style={{
                         scrollbarWidth: 'none', /* Firefox */
                         msOverflowStyle: 'none', /* IE and Edge */
@@ -178,30 +195,30 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
                     {messages.map((message, index) => (
                         <div
                             key={index}
-                            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex p-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
-                                className={`max-w-[75%] flex flex-wrap p-3 rounded-2xl shadow-sm ${
-                                    message.sender === 'user'
-                                        ? 'bg-purple-600 text-white rounded-tr-none'
-                                        : 'bg-white rounded-tl-none'
-                                }`}
+                                className={`max-w-[75%]  flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
+                                        ? 'bg-white text-white rounded-tr-none'
+                                        : 'bg-white text-white rounded-tl-none'
+                                    }`}
                                 style={{
                                     wordBreak: 'break-word',
                                     overflow: 'visible'
                                 }}
                             >
-                                <div className="flex gap-3 items-start w-full">
+                                <div className="flex relative gap-3 items-start w-full">
                                     {message.sender === 'bot' && (
-                                        <div className="flex-shrink-0 h-6 w-6 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold mt-1">
-                                            Y
-                                        </div>
+                                       <div className=" shadow-lg absolute -top-6 -left-6 h-5 w-5 text-xs bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                       Y
+                                     </div>
+                                     
                                     )}
-                                    <div className={`${message.sender === 'user' ? 'text-white text-xs' : 'text-gray-800 text-xs'} flex-grow whitespace-pre-wrap`}>
+                                    <div className={`${message.sender === 'user' ? 'text-gray-800 text-xs' : 'text-gray-800 text-xs'} flex-grow whitespace-pre-wrap`}>
                                         {message.content}
                                     </div>
                                     {message.sender === 'user' && (
-                                        <div className="flex-shrink-0 h-6 w-6 bg-purple-700 rounded-full flex items-center justify-center text-white font-bold mt-1 ml-2">
+                                        <div className=" shadow-lg absolute -top-6 -right-6 flex-shrink-0 h-5 w-5 text-xs bg-purple-700 rounded-full flex items-center justify-center text-white font-bold">
                                             U
                                         </div>
                                     )}
@@ -209,7 +226,7 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
                             </div>
                         </div>
                     ))}
-                    
+
                     {/* Indicador de carga */}
                     {isLoading && (
                         <div className="flex justify-start">
@@ -238,6 +255,12 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
                     <form onSubmit={handleSubmit} className="relative">
                         <textarea
                             ref={textareaRef}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSubmit(e);
+                                }
+                            }}
                             value={prompt}
                             onChange={adjustTextareaHeight}
                             placeholder="Escribe tu mensaje aquí..."
@@ -249,14 +272,14 @@ const fetchAnswer = async (query: string): Promise<ApiResponse> => {
                                 wordWrap: 'break-word',
                                 whiteSpace: 'pre-wrap'
                             }}
+                            autoFocus
                         />
                         <button
                             type="submit"
-                            className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                                isLoading || !prompt.trim() 
-                                    ? 'bg-gray-400 cursor-not-allowed' 
+                            className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isLoading || !prompt.trim()
+                                    ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-purple-600 hover:bg-purple-700'
-                            } text-white p-2 rounded-full transition-colors duration-200`}
+                                } text-white p-2 rounded-full transition-colors duration-200`}
                             disabled={isLoading || !prompt.trim()}
                         >
                             <Send className="h-4 w-4" />
