@@ -132,7 +132,7 @@ const Chat = () => {
                 if (textareaRef.current) {
                     textareaRef.current.focus();
                 }
-            }, 0);
+            }, 3000);
         }
     };
 
