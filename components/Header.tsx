@@ -1,3 +1,5 @@
+// import Logo from "@/src/ui/Logo"
+
 import Logo from "@/src/ui/Logo"
 
 const Header = () => {
@@ -5,14 +7,16 @@ const Header = () => {
         <div className="bg-white border-b border-gray-200 shadow-sm py-4">
             <div className="max-w-4xl mx-auto flex justify-between items-center">
                 <div>
-                    <h1 className="text-mdl font-bold text-purple-700">Your intelligent conversation assistant</h1>
-                    <p className="text-gray-600 text-xs">Llama 3.0</p>
+                    <div className="relative w-[250px] h-[40px]">
+                        <Logo />
+                    </div>
                 </div>
                 <div className="text-right">
-               <div className="relative w-[100px] h-[40px]">
-               <Logo />
-               </div>
-                    <p className="text-xs text-gray-500">Power By Nec</p>
+                    <h1 className="text-md font-bold text-custom-blue">Your intelligent conversation assistant</h1>
+                    <div className="flex justify-end gap-1.5">
+                    <p className="text-xs subtitle">Power By Nec </p> <span className="text-xs text-gray-500"> Llama 3.0</span>
+
+                    </div>
                 </div>
             </div>
         </div>

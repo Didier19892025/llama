@@ -19,7 +19,7 @@ const Chat = () => {
     const [messages, setMessages] = useState<Message[]>([
         {
             sender: 'bot',
-            content: "Hola, soy Yama. ¿En qué puedo ayudarte hoy?"
+            content: "Hi, we're Nec. How can I help you today?"
         }
     ]);
     const [isLoading, setIsLoading] = useState(false);
@@ -184,7 +184,7 @@ const Chat = () => {
             <div className="flex-1 p-4">
                 <div
                     ref={chatContainerRef}
-                    className="max-w-4xl mx-auto space-y-6 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
+                    className="max-w-4xl p-4 mx-auto space-y-6 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
                     style={{
                         scrollbarWidth: 'none', /* Firefox */
                         msOverflowStyle: 'none', /* IE and Edge */
@@ -195,7 +195,7 @@ const Chat = () => {
                     {messages.map((message, index) => (
                         <div
                             key={index}
-                            className={`flex p-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex px-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
                                 className={`max-w-[75%]  flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
@@ -209,8 +209,8 @@ const Chat = () => {
                             >
                                 <div className="flex relative gap-3 items-start w-full">
                                     {message.sender === 'bot' && (
-                                       <div className=" shadow-lg absolute -top-6 -left-6 h-5 w-5 text-xs bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                                       Y
+                                       <div className=" shadow-lg absolute -top-6 -left-8 h-5 w-10 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
+                                       Nec
                                      </div>
                                      
                                     )}
@@ -218,8 +218,8 @@ const Chat = () => {
                                         {message.content}
                                     </div>
                                     {message.sender === 'user' && (
-                                        <div className=" shadow-lg absolute -top-6 -right-6 flex-shrink-0 h-5 w-5 text-xs bg-purple-700 rounded-full flex items-center justify-center text-white font-bold">
-                                            U
+                                        <div className=" shadow-lg absolute -top-6 -right-6 flex-shrink-0 h-5 w-5 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
+                                            D
                                         </div>
                                     )}
                                 </div>
@@ -232,14 +232,14 @@ const Chat = () => {
                         <div className="flex justify-start">
                             <div className="max-w-3xl p-3 rounded-2xl shadow-sm bg-white rounded-tl-none">
                                 <div className="flex gap-3 items-center">
-                                    <div className="flex-shrink-0 h-6 w-6 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                                        Y
+                                    <div className="flex-shrink-0 h-6 w-10 bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
+                                        Nec
                                     </div>
                                     <div className="text-gray-800 text-xs">
                                         <span className="flex items-center">
-                                            <span className="h-2 w-2 bg-purple-600 rounded-full animate-pulse mr-1"></span>
-                                            <span className="h-2 w-2 bg-purple-600 rounded-full animate-pulse mr-1" style={{ animationDelay: '0.2s' }}></span>
-                                            <span className="h-2 w-2 bg-purple-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse mr-1"></span>
+                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse mr-1" style={{ animationDelay: '0.2s' }}></span>
+                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
                                         </span>
                                     </div>
                                 </div>
@@ -264,7 +264,7 @@ const Chat = () => {
                             value={prompt}
                             onChange={adjustTextareaHeight}
                             placeholder="Escribe tu mensaje aquí..."
-                            className="w-full p-3 pr-12 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 resize-none overflow-hidden min-h-[46px] max-h-[150px]"
+                            className="w-full p-3 pr-12 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-transparent bg-gray-50 resize-none overflow-hidden min-h-[46px] max-h-[150px]"
                             disabled={isLoading}
                             rows={1}
                             style={{
@@ -278,7 +278,7 @@ const Chat = () => {
                             type="submit"
                             className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isLoading || !prompt.trim()
                                     ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-purple-600 hover:bg-purple-700'
+                                    : 'bg-custom-blue hover:bg-custom-blue'
                                 } text-white p-2 rounded-full transition-colors duration-200`}
                             disabled={isLoading || !prompt.trim()}
                         >

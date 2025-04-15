@@ -9,18 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.8.0",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
     "lucide-react": "^0.487.0",
     "next": "15.2.4",
-    "next-auth": "^4.24.11",
     "prisma": "^6.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.55.0",
+    "sweetalert2": "^11.18.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

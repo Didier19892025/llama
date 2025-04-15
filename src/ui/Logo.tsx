@@ -3,7 +3,6 @@ import Image from "next/image";
 
 const Logo = () => {
     return (
-        <div className="relative w-[100px] h-[40px]">
             <Image
                 src="/logo_nec.svg" // Ruta relativa a la carpeta public
                 alt="Logo nec"
@@ -11,7 +10,6 @@ const Logo = () => {
                 fill
                 style={{ objectFit: 'contain' }}
             />
-        </div>
     );
 };
 

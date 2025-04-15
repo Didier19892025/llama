@@ -28,3 +28,18 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #6B7280 #F3F4F6;
 }
+
+/* Aquí puedes definir tus clases personalizadas usando las directivas de Tailwind */
+@layer components {
+  .text-custom-blue {
+    @apply text-[#034cc1];
+  }
+  
+  .bg-custom-blue {
+    @apply bg-[#034cc1];
+  }
+  
+  .subtitle {
+    @apply text-gray-500;
+  }
+}
