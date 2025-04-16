@@ -164,7 +164,7 @@ const Chat = () => {
             <div className="flex-1 ">
                 <div
                     ref={chatContainerRef}
-                    className="max-w-4xl p-4 mx-auto space-y-2 max-h-[calc(106vh-180px)] overflow-y-auto scrollbar-hide"
+                    className="max-w-4xl p-4 mx-auto space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
                     {messages.map((message, index) => (
