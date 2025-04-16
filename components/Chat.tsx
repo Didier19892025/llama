@@ -161,21 +161,21 @@ const Chat = () => {
     return (
         <div className="flex flex-col relative h-screen">
             {/* Área del chat */}
-            <div className="flex-1 p-4">
+            <div className="flex-1 ">
                 <div
                     ref={chatContainerRef}
-                    className="max-w-4xl p-4 mx-auto space-y-6 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
+                    className="max-w-4xl p-4 mx-auto space-y-2 max-h-[calc(106vh-180px)] overflow-y-auto scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
                     {messages.map((message, index) => (
                         <div
                             key={index}
-                            className={`flex px-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex  px-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
                                 className={`max-w-[75%] flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
-                                        ? 'bg-white text-white rounded-tr-none'
-                                        : 'bg-white text-white rounded-tl-none'
+                                    ? 'bg-white text-white rounded-tr-none'
+                                    : 'bg-white text-white rounded-tl-none'
                                     }`}
                                 style={{ wordBreak: 'break-word', overflow: 'visible' }}
                             >
@@ -200,15 +200,15 @@ const Chat = () => {
 
 
                     {isTyping && (
-                        <div className="flex justify-start">
-                                <div className="flex gap-3 items-center">
-                                    <div className="text-gray-800 text-xs">
-                                        <span className="flex items-center">
-                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse mr-1"></span>
-                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse mr-1" style={{ animationDelay: '0.2s' }}></span>
-                                            <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
-                                        </span>
-                                    </div>
+                        <div className="flex justify-between items-center px-6 rounded-lg mb-2">
+                            <div className="flex gap-3 items-center">
+                                <div className="text-gray-800 text-xs">
+                                    <span className="flex items-center">
+                                        <span className="h-1.5 w-1.5  bg-custom-blue rounded-full animate-pulse mr-1"></span>
+                                        <span className="h-1.5  w-1.5  bg-custom-blue rounded-full animate-pulse mr-1" style={{ animationDelay: '0.2s' }}></span>
+                                        <span className="h-1.5  w-1.5  bg-custom-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -216,7 +216,7 @@ const Chat = () => {
             </div>
 
             {/* Área de entrada */}
-            <div className="mb-10 absolute bottom-12 left-0 w-full">
+            <div className=" mb-10 absolute bottom-12 left-0 w-full">
                 <div className="max-w-4xl mx-auto">
                     <form onSubmit={handleSubmit} className="relative">
                         <textarea
@@ -243,8 +243,8 @@ const Chat = () => {
                         <button
                             type="submit"
                             className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isLoading || !prompt.trim()
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-custom-blue hover:bg-custom-blue'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-custom-blue hover:bg-custom-blue'
                                 } text-white p-2 rounded-full transition-colors duration-200`}
                             disabled={isLoading || !prompt.trim()}
                         >
