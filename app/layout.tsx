@@ -4,7 +4,7 @@ import { FC, PropsWithChildren } from "react";
 
 
 export const metadata: Metadata = {
-  title: "Yama 1",
+  title: "NEC Llama 3.0",
 };
 
 

@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
 import { Send } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
-// Definimos los tipos para TypeScript
+// Tipos para TypeScript
 interface Message {
     sender: 'user' | 'bot';
     content: string;
@@ -23,14 +23,13 @@ const Chat = () => {
         }
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Función para comunicarse con nuestra API route (proxy)
+    // Función para obtener respuesta de la API
     const fetchAnswer = async (query: string): Promise<ApiResponse> => {
         try {
-            console.log("Intentando conexión con API route local");
-    
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api`, {
                 method: "POST",
                 headers: {
@@ -41,24 +40,16 @@ const Chat = () => {
                     query: query
                 }),
             });
-    
-            console.log("Respuesta recibida:", response);
-    
+
             if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+                throw new Error(`Error HTTP: ${response.status}`);
             }
-    
+
             const responseData = await response.json();
-            console.log("Datos recibidos en el cliente:", responseData);
-            
-            // Manejar caso cuando la respuesta es un array
-            const data: ApiResponse = Array.isArray(responseData) 
-                ? responseData[0] 
-                : responseData;
-                
+            const data: ApiResponse = Array.isArray(responseData) ? responseData[0] : responseData;
             return data;
         } catch (error) {
-            console.error("Error al intentar obtener respuesta de la API:", error);
+            console.error("Error API:", error);
             return {
                 status: 'bad',
                 answer: "Lo siento, no se pudo obtener una respuesta. Por favor, inténtalo de nuevo."
@@ -66,111 +57,100 @@ const Chat = () => {
         }
     };
 
+    // Efecto de tipeo
+    const typeMessage = async (text: string, delay = 20) => {
+        return new Promise<void>(async (resolve) => {
+            let typedText = '';
+            setIsTyping(true);
+
+            for (let i = 0; i < text.length; i++) {
+                typedText += text[i];
+                setMessages(prev => {
+                    const updated = [...prev];
+                    // Si ya hay un mensaje del bot escribiendo, reemplazar
+                    if (updated[updated.length - 1]?.sender === 'bot') {
+                        updated[updated.length - 1] = { sender: 'bot', content: typedText };
+                    } else {
+                        updated.push({ sender: 'bot', content: typedText });
+                    }
+                    return updated;
+                });
+                await new Promise(res => setTimeout(res, delay));
+            }
+
+            setIsTyping(false);
+            resolve();
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!prompt.trim()) return;
 
-        // Agregamos el mensaje del usuario
         const userMessage: Message = { sender: 'user', content: prompt };
-        setMessages(prevMessages => [...prevMessages, userMessage]);
+        setMessages(prev => [...prev, userMessage]);
 
-        // Guardamos el prompt y limpiamos el input
         const currentPrompt = prompt;
         setPrompt('');
-
-        // Indicamos que estamos cargando
         setIsLoading(true);
 
-        // Resetear altura del textarea
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
         }
 
         try {
-            // Llamamos a la API real
             const response = await fetchAnswer(currentPrompt);
 
-            // Agregamos la respuesta según el estado
-            let botMessage: Message;
-
+            let botReply: string;
             switch (response.status) {
                 case "good":
-                    botMessage = { sender: 'bot', content: response.answer };
+                    botReply = response.answer;
                     break;
                 case "bad":
-                    botMessage = {
-                        sender: 'bot',
-                        content: response.answer || "Lo siento, no pude procesar tu solicitud correctamente."
-                    };
+                    botReply = response.answer || "Lo siento, no pude procesar tu solicitud correctamente.";
                     break;
                 case "time_out":
-                    botMessage = {
-                        sender: 'bot',
-                        content: "Lo siento, la solicitud ha tardado demasiado tiempo. Por favor, inténtalo de nuevo."
-                    };
+                    botReply = "Lo siento, la solicitud ha tardado demasiado tiempo. Por favor, inténtalo de nuevo.";
                     break;
                 default:
-                    botMessage = {
-                        sender: 'bot',
-                        content: "Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo."
-                    };
+                    botReply = "Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.";
             }
 
-            setMessages(prevMessages => [...prevMessages, botMessage]);
+            await typeMessage(botReply);
         } catch (error) {
-            console.error("Error en la solicitud:", error);
-            // Manejo de errores en el proceso
-            const errorMessage: Message = {
-                sender: 'bot',
-                content: "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo."
-            };
-            setMessages(prevMessages => [...prevMessages, errorMessage]);
+            console.error("Error en el submit:", error);
+            await typeMessage("Lo siento, ha ocurrido un error al procesar tu solicitud.");
         } finally {
             setIsLoading(false);
-            // Aseguramos que el textarea mantiene el foco después de completar la operación
             setTimeout(() => {
-                if (textareaRef.current) {
-                    textareaRef.current.focus();
-                }
-            }, 3000);
+                textareaRef.current?.focus();
+            }, 300);
         }
     };
 
-    // Efecto para hacer scroll automáticamente al final cuando los mensajes cambian
+    // Scroll automático al final
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-        // Enfocar el textarea después de actualizar los mensajes
-        if (textareaRef.current) {
-            textareaRef.current.focus();
-        }
-    }, [messages]);
+    }, [messages, isTyping]);
 
-    // Efecto para asegurar el enfoque inicial cuando se carga el componente
     useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.focus();
-        }
+        textareaRef.current?.focus();
     }, []);
 
-    // Efecto para mantener el enfoque cuando el usuario interactúa con otras partes de la página
     useEffect(() => {
         const handleClick = () => {
             if (textareaRef.current && document.activeElement !== textareaRef.current) {
                 textareaRef.current.focus();
             }
         };
-
-        // Agregamos el evento al documento entero
         document.addEventListener('click', handleClick);
-
         return () => {
             document.removeEventListener('click', handleClick);
         };
     }, []);
 
-    // Función para ajustar automáticamente la altura del textarea
     const adjustTextareaHeight = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = e.target;
         textarea.style.height = 'auto';
@@ -180,45 +160,36 @@ const Chat = () => {
 
     return (
         <div className="flex flex-col relative h-screen">
-            {/* Chat area */}
+            {/* Área del chat */}
             <div className="flex-1 p-4">
                 <div
                     ref={chatContainerRef}
                     className="max-w-4xl p-4 mx-auto space-y-6 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
-                    style={{
-                        scrollbarWidth: 'none', /* Firefox */
-                        msOverflowStyle: 'none', /* IE and Edge */
-                        WebkitOverflowScrolling: 'touch'
-                    }}
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
-                    {/* Messages */}
                     {messages.map((message, index) => (
                         <div
                             key={index}
                             className={`flex px-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
-                                className={`max-w-[75%]  flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
+                                className={`max-w-[75%] flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
                                         ? 'bg-white text-white rounded-tr-none'
                                         : 'bg-white text-white rounded-tl-none'
                                     }`}
-                                style={{
-                                    wordBreak: 'break-word',
-                                    overflow: 'visible'
-                                }}
+                                style={{ wordBreak: 'break-word', overflow: 'visible' }}
                             >
                                 <div className="flex relative gap-3 items-start w-full">
                                     {message.sender === 'bot' && (
-                                       <div className=" shadow-lg absolute -top-6 -left-8 h-5 w-10 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
-                                       Nec
-                                     </div>
-                                     
+                                        <div className="shadow-lg absolute -top-6 -left-8 h-5 w-10 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
+                                            Nec
+                                        </div>
                                     )}
-                                    <div className={`${message.sender === 'user' ? 'text-gray-800 text-xs' : 'text-gray-800 text-xs'} flex-grow whitespace-pre-wrap`}>
+                                    <div className="text-gray-800 text-xs flex-grow whitespace-pre-wrap">
                                         {message.content}
                                     </div>
                                     {message.sender === 'user' && (
-                                        <div className=" shadow-lg absolute -top-6 -right-6 flex-shrink-0 h-5 w-5 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
+                                        <div className="shadow-lg absolute -top-6 -right-6 h-5 w-5 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
                                             D
                                         </div>
                                     )}
@@ -227,14 +198,10 @@ const Chat = () => {
                         </div>
                     ))}
 
-                    {/* Indicador de carga */}
-                    {isLoading && (
+
+                    {isTyping && (
                         <div className="flex justify-start">
-                            <div className="max-w-3xl p-3 rounded-2xl shadow-sm bg-white rounded-tl-none">
                                 <div className="flex gap-3 items-center">
-                                    <div className="flex-shrink-0 h-6 w-10 bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
-                                        Nec
-                                    </div>
                                     <div className="text-gray-800 text-xs">
                                         <span className="flex items-center">
                                             <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse mr-1"></span>
@@ -242,14 +209,13 @@ const Chat = () => {
                                             <span className="h-2 w-2 bg-custom-blue rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></span>
                                         </span>
                                     </div>
-                                </div>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Input area */}
+            {/* Área de entrada */}
             <div className="mb-10 absolute bottom-12 left-0 w-full">
                 <div className="max-w-4xl mx-auto">
                     <form onSubmit={handleSubmit} className="relative">

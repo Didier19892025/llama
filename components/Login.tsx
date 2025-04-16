@@ -28,22 +28,18 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+            console.log("Intentando conexión con API de jhonathan");
+
+            const response = await fetch("http://192.168.2.47:5000/login", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
             });
-            console.log('Login response py:', response)
-
 
             const result = await response.json();
-            console.log('Login response py:', result);
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Login failed');
-            }
+            console.log('result:', result);
 
             // Success message
             Swal.fire({
@@ -54,16 +50,11 @@ const Login = () => {
                 showConfirmButton: false,
             });
 
-            // You can store token and redirect here
-            // localStorage.setItem('token', result.token);
-            // router.push('/dashboard');
-
         } catch (error) {
             console.error('Login error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Something went wrong!',
                 timer: 3000,
                 showConfirmButton: false,
             });
@@ -71,6 +62,7 @@ const Login = () => {
             setIsLoading(false);
         }
     };
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 to-white py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-[400px] space-y-8 bg-white p-8 rounded-xl shadow-lg">
