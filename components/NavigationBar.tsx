@@ -24,14 +24,14 @@ const NavigationBar = () => {
     };
 
     return (
-        <div className={`relative bg-custom-blue text-white flex flex-col justify-between transition-all duration-300 ${sidebarOpen ? 'w-48' : 'w-14'} border-l border-gray-200 shadow-xl`}>
+        <div className={`relative bg-custom-blue text-white flex flex-col justify-between transition-all duration-300 ${sidebarOpen ? 'w-48' : 'w-0'} border-l border-gray-200 shadow-xl`}>
             {/* Toggle sidebar button - positioned dynamically based on sidebar state */}
             <button
                 onClick={toggleSidebar}
                 className={`absolute w-8 h-8 flex items-center justify-center shadow-2xl bg-custom-blue text-white rounded-full transition-all duration-300 cursor-pointer ${
                     sidebarOpen
                         ? 'right-44 top-4'
-                        : 'right-10 top-4'
+                        : '-right-2 top-4'
                 }`}
             >
                 {sidebarOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}

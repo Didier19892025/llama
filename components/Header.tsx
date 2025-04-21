@@ -6,9 +6,7 @@ const Header = () => {
         <div className="bg-white border-b border-gray-200 shadow-sm py-4">
             <div className="max-w-4xl mx-auto flex justify-between items-center">
                 <div>
-                    <div className="relative w-[250px] h-[40px]">
                         <Logo />
-                    </div>
                 </div>
                 <div className="text-right">
                     <h1 className="text-md font-bold text-custom-blue">Your intelligent conversation assistant</h1>

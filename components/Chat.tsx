@@ -52,7 +52,7 @@ const Chat = () => {
             console.error("Error API:", error);
             return {
                 status: 'bad',
-                answer: "Lo siento, no se pudo obtener una respuesta. Por favor, inténtalo de nuevo."
+                answer: "Sorry, we couldn't get a response. Please try again.."
             };
         }
     };
@@ -88,7 +88,15 @@ const Chat = () => {
         if (!prompt.trim()) return;
 
         const userMessage: Message = { sender: 'user', content: prompt };
+        
+        // Añadir el mensaje del usuario
         setMessages(prev => [...prev, userMessage]);
+        
+        // Añadir un mensaje de carga temporal
+        setMessages(prev => [...prev, { 
+            sender: 'bot', 
+            content: "Wait, we're looking for you..." 
+        }]);
 
         const currentPrompt = prompt;
         setPrompt('');
@@ -101,25 +109,39 @@ const Chat = () => {
         try {
             const response = await fetchAnswer(currentPrompt);
 
+            // Eliminar el mensaje de carga para preparar la respuesta real
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages.pop(); // Elimina el mensaje de "Procesando tu solicitud..."
+                return newMessages;
+            });
+
             let botReply: string;
             switch (response.status) {
                 case "good":
                     botReply = response.answer;
                     break;
                 case "bad":
-                    botReply = response.answer || "Lo siento, no pude procesar tu solicitud correctamente.";
+                    botReply = response.answer || "Sorry, I couldn't process your request correctly.";
                     break;
                 case "time_out":
-                    botReply = "Lo siento, la solicitud ha tardado demasiado tiempo. Por favor, inténtalo de nuevo.";
+                    botReply = "Sorry, your request took too long. Please try again.";
                     break;
                 default:
-                    botReply = "Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.";
+                    botReply = "An unexpected error has occurred. Please try again.";
             }
 
             await typeMessage(botReply);
         } catch (error) {
-            console.error("Error en el submit:", error);
-            await typeMessage("Lo siento, ha ocurrido un error al procesar tu solicitud.");
+            // Eliminar el mensaje de carga en caso de error
+            setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages.pop();
+                return newMessages;
+            });
+            
+            console.error(error);
+            await typeMessage("Sorry, an error occurred while processing your request.");
         } finally {
             setIsLoading(false);
             setTimeout(() => {
@@ -158,19 +180,20 @@ const Chat = () => {
         setPrompt(textarea.value);
     };
 
+
     return (
         <div className="flex flex-col relative h-screen">
             {/* Área del chat */}
-            <div className="flex-1 ">
+            <div className="flex-1">
                 <div
                     ref={chatContainerRef}
-                    className="max-w-4xl p-4 mx-auto space-y-2 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide"
+                    className="max-w-4xl p-6 mx-auto space-y-2 max-h-[calc(100vh-152px)] overflow-y-auto scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
                 >
                     {messages.map((message, index) => (
                         <div
                             key={index}
-                            className={`flex  px-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div
                                 className={`max-w-[75%] flex flex-wrap p-3 rounded-2xl shadow-sm ${message.sender === 'user'
