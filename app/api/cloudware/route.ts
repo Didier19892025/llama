@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    console.log("Respuesta de llama_prompt - status:", response.status);
     
     // Si la respuesta no es exitosa, lanzar un error
     if (!response.ok) {
@@ -27,7 +26,6 @@ export async function POST(request: NextRequest) {
     
     // Convertir la respuesta a JSON
     const data = await response.json();
-    console.log("Datos recibidos de llama_prompt:", data);
     
     // Devolver la respuesta
     return NextResponse.json(data);
@@ -39,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           status: "bad",
-          answer: "Lo siento, no pude conectar con el servidor. Verifica la conexión a internet o inténtalo más tarde."
+          answer: "Sorry, I couldn't connect to the server. Please check your internet connection or try again later."
         },
         { status: 500 }
       );
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         status: "bad",
-        answer: "Ocurrió un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde."
+        answer: "An error occurred while processing your request. Please try again later."
       },
       { status: 500 }
     );

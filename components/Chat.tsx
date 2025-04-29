@@ -27,6 +27,18 @@ const Chat = () => {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+
+    const [username, setUserName] = useState("");
+
+    useEffect(() => {
+        const getCookie = (username: string) => {
+            const cookies = document.cookie.split("; ");
+            const cookie = cookies.find((c) => c.startsWith(`${username}=`));
+            return cookie ? decodeURIComponent(cookie.split("=")[1]) : undefined;
+        };
+        const username = getCookie("username");
+        setUserName(username || "");
+    }, []);
     // Función para obtener respuesta de la API
     const fetchAnswer = async (query: string): Promise<ApiResponse> => {
         try {
@@ -36,7 +48,7 @@ const Chat = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    username: "XYZ",
+                    username: username || "Anonymous",
                     query: query
                 }),
             });
@@ -88,14 +100,14 @@ const Chat = () => {
         if (!prompt.trim()) return;
 
         const userMessage: Message = { sender: 'user', content: prompt };
-        
+
         // Añadir el mensaje del usuario
         setMessages(prev => [...prev, userMessage]);
-        
+
         // Añadir un mensaje de carga temporal
-        setMessages(prev => [...prev, { 
-            sender: 'bot', 
-            content: "Wait, we're looking for you..." 
+        setMessages(prev => [...prev, {
+            sender: 'bot',
+            content: `Waiting for your response, ${username || 'User'}`
         }]);
 
         const currentPrompt = prompt;
@@ -139,7 +151,7 @@ const Chat = () => {
                 newMessages.pop();
                 return newMessages;
             });
-            
+
             console.error(error);
             await typeMessage("Sorry, an error occurred while processing your request.");
         } finally {
@@ -213,9 +225,10 @@ const Chat = () => {
                                     </div>
                                     {message.sender === 'user' && (
                                         <div className="shadow-lg absolute -top-6 -right-6 h-5 w-5 text-xs bg-custom-blue rounded-full flex items-center justify-center text-white font-bold">
-                                            D
+                                            {username ? username.charAt(0).toUpperCase() : 'U'} {/* Aquí se usa la primera letra del nombre */}
                                         </div>
                                     )}
+
                                 </div>
                             </div>
                         </div>
