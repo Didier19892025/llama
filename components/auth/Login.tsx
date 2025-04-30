@@ -7,10 +7,12 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";  // Íconos utilizados e
 import Logo from "@/src/ui/Logo";  // Componente Logo que se usa en la interfaz
 import { LoginFormValues, loginSchema } from "@/src/schemas/loginSchema";  // Tipos y esquema de validación del formulario de login
 import Swal from "sweetalert2";  // Librería para mostrar alertas
+import { useRouter } from "next/navigation";
 
 const Login = () => {
     // Estado para manejar la visibilidad de la contraseña
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();  // Hook de Next.js para manejar la navegación
 
     // useForm para manejar el estado del formulario con validación Zod
     const {
@@ -55,12 +57,25 @@ const Login = () => {
             title: "¡Éxito!",
             text: "Inicio de sesión exitoso",
             confirmButtonColor: "#3085d6",
-            didClose: () => {
-              window.location.href = "/dashboard/newChat";
-            },
+            timer: 1500, // Cerramos el modal más rápido para mejor UX
+            showConfirmButton: false,
           });
       
           reset();
+          
+          // Importante: Añadir la redirección aquí
+          // Podemos verificar el rol del usuario desde el resultado o usar directamente '/dashboard'
+          // para que el middleware se encargue de la redirección según el rol
+          setTimeout(() => {
+            // Redirigir después de que se cierre el SweetAlert
+            if (result.user && result.user.role === "ADMIN") {
+              router.push('/dashboard/admin');
+            } else {
+              router.push('/dashboard/newChat');
+            }
+            // O simplemente router.push('/dashboard'); si prefieres que el middleware decida
+          }, 1500); // Este tiempo debe coincidir con el timer del SweetAlert
+          
         } catch (error) {
           console.error("Login error:", error);
           Swal.fire({
@@ -72,7 +87,6 @@ const Login = () => {
           });
         }
       };
-      
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 to-white py-12 px-4 sm:px-6 lg:px-8">

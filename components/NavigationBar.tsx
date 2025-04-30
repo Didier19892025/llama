@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LogOut, Plus, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toTitleCase } from "@/src/utils/functions";
+import Swal from "sweetalert2";
 
 const NavigationBar = () => {
   const router = useRouter();
@@ -22,9 +23,53 @@ const NavigationBar = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const handleLogout = () => {
-    router.push("/");
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Quieres cerrar sesión?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    });
+  
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Error al cerrar sesión en el servidor");
+        }
+  
+        Swal.fire({
+          icon: "success",
+          title: "¡Sesión cerrada!",
+          text: "Has cerrado sesión correctamente",
+          confirmButtonColor: "#3085d6",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+  
+        // Redirigir al inicio
+        router.push("/");
+      } catch (error) {
+        console.error("Logout error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: error instanceof Error ? error.message : "Error al cerrar sesión",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    }
   };
+
 
   return (
     <div
@@ -33,15 +78,15 @@ const NavigationBar = () => {
     >
       {/* Sidebar Toggle Button */}
       <button
-                onClick={toggleSidebar}
-                className={`fixed flex items-center justify-center shadow-2xl 
+        onClick={toggleSidebar}
+        className={`fixed flex items-center justify-center shadow-2xl 
                 bg-custom-blue text-white cursor-pointer
                 h-24 w-6 rounded-l-md rounded-r-md 
                 top-1/2 transform -translate-y-1/2 transition-all duration-300
                 ${sidebarOpen ? 'right-44' : '-right-3'}`}
-            >
-                {sidebarOpen ? <ChevronRight size={18} className="mr-2" /> : <ChevronLeft size={18} className="mr-3" />}
-            </button>
+      >
+        {sidebarOpen ? <ChevronRight size={18} className="mr-2" /> : <ChevronLeft size={18} className="mr-3" />}
+      </button>
 
       {/* User Name */}
       {sidebarOpen && (

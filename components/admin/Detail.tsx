@@ -2,7 +2,7 @@
 
 import { toTitleCase } from "@/src/utils/functions"
 import { User } from "@/types/users/users";
-import { BadgeCheck, CalendarClock, CalendarDays, CalendarPlus, CalendarX, Clock, Hourglass, Mail, ShieldCheck, UserIcon, X } from "lucide-react"
+import { BadgeCheck, CalendarClock, CalendarDays, CalendarPlus, CalendarX, Clock, Mail, ShieldCheck, UserIcon, X } from "lucide-react"
 import { FC } from "react";
 
 interface DetailProps {
@@ -84,7 +84,7 @@ const Detail: FC<DetailProps> = ({ selectedUser, onClose }) => {
                     </div>
 
                     {selectedUser.sessions?.length ? (
-                        <div className="max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/60 shadow-sm">
+                        <div className="max-h-42 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/60 shadow-sm">
                             <table className="w-full text-sm text-slate-700">
                                 <thead className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase font-semibold">
                                     <tr>
@@ -100,12 +100,7 @@ const Detail: FC<DetailProps> = ({ selectedUser, onClose }) => {
                                                 End
                                             </div>
                                         </th>
-                                        <th className="py-3 px-4 text-left font-semibold tracking-wide">
-                                            <div className="flex items-center gap-2">
-                                                <Hourglass className="w-4 h-4 text-yellow-600" />
-                                                Duration
-                                            </div>
-                                        </th>
+                                       
                                     </tr>
                                 </thead>
 
@@ -116,13 +111,9 @@ const Detail: FC<DetailProps> = ({ selectedUser, onClose }) => {
                                                 {new Date(session.timeInit).toLocaleString()}
                                             </td>
                                             <td className="py-3 px-4">
-                                                {session.timeEnd ? (
-                                                    new Date(session.timeEnd).toLocaleString()
-                                                ) : (
-                                                    <span className="text-emerald-600 font-medium">Ongoing</span>
-                                                )}
+                                                {session.timeEnd ? new Date(session.timeEnd).toLocaleString() : "Still Active"}
+                                               
                                             </td>
-                                            <td className="py-3 px-4">{session.timeDuration} min</td>
                                         </tr>
                                     ))}
                                 </tbody>

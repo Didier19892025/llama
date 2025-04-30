@@ -26,7 +26,6 @@ model Session {
   user          User     @relation(fields: [userId], references: [id])
   timeInit      DateTime @default(now())
   timeEnd       DateTime?
-  timeDuration  Int
 }
 
 enum Role {
