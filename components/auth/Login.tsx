@@ -37,7 +37,7 @@ const Login = () => {
             },
           });
       
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/login`, {
+          const response = await fetch('https://www.cloudware.com.co/login_llama', {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -69,9 +69,9 @@ const Login = () => {
           setTimeout(() => {
             // Redirigir después de que se cierre el SweetAlert
             if (result.user && result.user.role === "ADMIN") {
-              router.push('/dashboard/admin');
+              router.push('/chat1/dashboard/newChat');
             } else {
-              router.push('/dashboard/newChat');
+              router.push('/chat1/dashboard/admin');
             }
             // O simplemente router.push('/dashboard'); si prefieres que el middleware decida
           }, 1500); // Este tiempo debe coincidir con el timer del SweetAlert
@@ -94,10 +94,10 @@ const Login = () => {
             <div className="w-full max-w-[400px] space-y-8 bg-white p-8 rounded-xl shadow-lg">
                 {/* Logo y Título */}
                 <div className="text-center">
-                    <div className="relative w-[300px] h-[40px] flex items-center justify-center mx-auto">
+                    <div>
                         <Logo />  {/* Componente de logo */}
                     </div>
-                    <h2 className="text-2xl font-extrabold text-custom-blue mt-6">
+                    <h2 className=" text-lg font-extrabold text-custom-blue mt-6">
                         Sign in to your account
                     </h2>
                 </div>

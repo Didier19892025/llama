@@ -12,11 +12,20 @@ const AdminPage = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
-// Función para obtener usuarios
-const fetchUsers = async () => {
-  try {
-
-    const response = await fetch('/api/users');
+  // const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // Función para obtener usuarios
+  const fetchUsers = async () => {
+    try {
+      
+      const response = await fetch('https://www.cloudware.com.co/users_list', {
+        
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      console.log('re3spuesta de la api: ', response);
 
     if (!response.ok) {
       throw new Error('Error al cargar usuarios');
@@ -24,7 +33,7 @@ const fetchUsers = async () => {
 
     const data = await response.json();
 
-    if (data.success) {
+    if (data.ok) {
       setUsers(data.users);
     } else {
       throw new Error(data.message || 'Error al cargar usuarios');
@@ -66,7 +75,7 @@ const fetchUsers = async () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-6">
-        <div className="flex gap-3 items-center justify-between mb-4">
+        <div className="flex gap-3 items-center justify-between mb-4 p-4">
           <h1 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
             <span className="bg-blue-100 text-blue-600 p-2 rounded-xl">
               <Users className="w-5 h-5" />
