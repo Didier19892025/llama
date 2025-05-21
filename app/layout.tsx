@@ -14,7 +14,7 @@ const RootLayout: FC<PropsWithChildren> = ({children}) => {
       <body
         className={` antialiased`}
       >
-        {children}
+          {children}
       </body>
     </html>
   )

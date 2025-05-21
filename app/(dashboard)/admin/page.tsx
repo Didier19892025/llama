@@ -25,7 +25,6 @@ const AdminPage = () => {
           'Accept': 'application/json',
         },
       });
-      console.log('re3spuesta de la api: ', response);
 
     if (!response.ok) {
       throw new Error('Error al cargar usuarios');

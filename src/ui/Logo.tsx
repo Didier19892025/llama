@@ -8,7 +8,7 @@ const Logo = () => {
         <Image
           width={200}
           height={40}
-          src="/chat1/logo.svg"
+          src="/chat1/logo-nec-oabw.svg"
           alt="Logo"
           className=""
         />

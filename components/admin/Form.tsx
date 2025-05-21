@@ -16,13 +16,15 @@ const Form: FC<FormProps> = ({ onclose }) => {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-        reset,
+        // reset,
     } = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
         mode: "all",
     });
 
     const onSubmit = async (data: UserFormData) => {
+    console.log('datos enviados ', data);
+
         try {
             Swal.fire({
                 title: 'Registrando usuario',
@@ -33,7 +35,7 @@ const Form: FC<FormProps> = ({ onclose }) => {
                 }
             });
 
-            const response = await fetch('/api/users', {
+            const response = await fetch('https://www.cloudware.com.co/register_llama', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -42,9 +44,11 @@ const Form: FC<FormProps> = ({ onclose }) => {
             });
 
             const result = await response.json();
-            Swal.close();
-            
-            if (!response.ok || !result.success) {
+            console.log('respusta de register: ', result);
+
+            // Swal.close();
+
+            if (!response.ok) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -58,9 +62,9 @@ const Form: FC<FormProps> = ({ onclose }) => {
                     text: 'Usuario registrado correctamente',
                     confirmButtonColor: '#3085d6',
                 });
-                reset();
-                onclose(false);
-                
+                // reset();
+                // onclose(false);
+
             }
         } catch (error) {
             console.error('Error:', error);
@@ -119,13 +123,13 @@ const Form: FC<FormProps> = ({ onclose }) => {
                                 <input
                                     id="user"
                                     type="text"
-                                    {...register("user")}
+                                    {...register("username")}
                                     placeholder="User name"
-                                    className={`pl-10 pr-3 py-2 rounded-lg border w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 ${errors.user ? 'border-red-500' : 'border-slate-200'}`}
-                                    aria-invalid={!!errors.user}
+                                    className={`pl-10 pr-3 py-2 rounded-lg border w-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 ${errors.username ? 'border-red-500' : 'border-slate-200'}`}
+                                    aria-invalid={!!errors.username}
                                 />
                             </div>
-                            {errors.user && <p className="text-red-500 text-xs mt-1">{errors.user.message}</p>}
+                            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
                         </div>
 
                         {/* Email */}

@@ -8,6 +8,7 @@ import Logo from "@/src/ui/Logo";  // Componente Logo que se usa en la interfaz
 import { LoginFormValues, loginSchema } from "@/src/schemas/loginSchema";  // Tipos y esquema de validación del formulario de login
 import Swal from "sweetalert2";  // Librería para mostrar alertas
 import { useRouter } from "next/navigation";
+import CookieManager from "@/src/utils/cookieManager";
 
 const Login = () => {
     // Estado para manejar la visibilidad de la contraseña
@@ -26,67 +27,87 @@ const Login = () => {
     });
 
     // Función que se ejecuta al enviar el formulario
-    const onSubmit = async (data: LoginFormValues) => {
-        try {
-          Swal.fire({
-            title: "Iniciando sesión...",
-            text: "Por favor espere...",
-            allowOutsideClick: false,
-            didOpen: () => {
-              Swal.showLoading();
-            },
-          });
+  // Login.tsx - Función onSubmit actualizada
+const onSubmit = async (data: LoginFormValues) => {
+  try {
+    Swal.fire({
+      title: "Iniciando sesión...",
+      text: "Por favor espere...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    const response = await fetch('https://www.cloudware.com.co/login_llama', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // importante para cookies httpOnly
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    console.log("Login result:", result);
+
+    if (!response.ok) {
+      throw new Error(result.message || "Error al iniciar sesión");
+    }
+
+    // 🆕 Guardar información del usuario en cookies del cliente
+    if (result.user) {
+      // Guardar nombre del usuario
+      if (result.user.name) {
+        CookieManager.setCookie('name', result.user.name);
+      }
       
-          const response = await fetch('https://www.cloudware.com.co/login_llama', {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include", // importante para cookies httpOnly
-            body: JSON.stringify(data),
-          });
+      // Guardar email del usuario
+      if (result.user.email || data.email) {
+        CookieManager.setCookie('email', result.user.email || data.email);
+      }
       
-          const result = await response.json();
-      
-          if (!response.ok) {
-            throw new Error(result.message || "Error al iniciar sesión");
-          }
-      
-          Swal.fire({
-            icon: "success",
-            title: "¡Éxito!",
-            text: "Inicio de sesión exitoso",
-            confirmButtonColor: "#3085d6",
-            timer: 1500, // Cerramos el modal más rápido para mejor UX
-            showConfirmButton: false,
-          });
-      
-          reset();
-          
-          // Importante: Añadir la redirección aquí
-          // Podemos verificar el rol del usuario desde el resultado o usar directamente '/dashboard'
-          // para que el middleware se encargue de la redirección según el rol
-          setTimeout(() => {
-            // Redirigir después de que se cierre el SweetAlert
-            if (result.user && result.user.role === "ADMIN") {
-              router.push('/chat1/dashboard/newChat');
-            } else {
-              router.push('/chat1/dashboard/admin');
-            }
-            // O simplemente router.push('/dashboard'); si prefieres que el middleware decida
-          }, 1500); // Este tiempo debe coincidir con el timer del SweetAlert
-          
-        } catch (error) {
-          console.error("Login error:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Oops...",
-            text: error instanceof Error ? error.message : "Error desconocido",
-            timer: 3000,
-            showConfirmButton: false,
-          });
-        }
-      };
+      // Guardar rol del usuario
+      if (result.user.role) {
+        CookieManager.setCookie('role', result.user.role);
+      }
+
+      // Si tienes un token en la respuesta, guardarlo también
+      if (result.token) {
+        CookieManager.setCookie('token', result.token);
+      }
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Éxito!",
+      text: "Inicio de sesión exitoso",
+      confirmButtonColor: "#3085d6",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+
+    reset();
+    
+    setTimeout(() => {
+      if (result?.user?.role === "ADMIN") {
+        router.push('/chat1/admin');
+      } else {
+        router.push('/chat1/newChat');
+      }
+    }, 1500);
+    
+  } catch (error) {
+    console.error("Login error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: error instanceof Error ? error.message : "Error desconocido",
+      timer: 3000,
+      showConfirmButton: false,
+    });
+  }
+};
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 to-white py-12 px-4 sm:px-6 lg:px-8">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,24 +8,30 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
+  User
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toTitleCase } from "@/src/utils/functions";
+import CookieManager from "@/src/utils/cookieManager";
 import Swal from "sweetalert2";
 
 const NavigationBar = () => {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [name, setName] = useState("");
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+    role: ""
+  });
 
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const cookies = document.cookie.split("; ");
-      const cookie = cookies.find((c) => c.startsWith(`${name}=`));
-      return cookie ? decodeURIComponent(cookie.split("=")[1]) : undefined;
-    };
-    const name = getCookie("name");
-    setName(name || "");
+    // Obtener información del usuario desde las cookies
+    const userData = CookieManager.getUserInfo();
+    setUserInfo({
+      name: userData.name || "",
+      email: userData.email || "",
+      role: userData.role || ""
+    });
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -41,6 +48,28 @@ const NavigationBar = () => {
 
     if (result.isConfirmed) {
       try {
+        // Mostrar loading
+        Swal.fire({
+          title: "Cerrando sesión...",
+          text: "Por favor espere...",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        // Llamar al endpoint de logout
+        await fetch("https://www.cloudware.com.co/logout_llama", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        // Limpiar cookies del lado del cliente
+        CookieManager.clearSessionCookies();
+
+        // Limpiar estado local
+        setUserInfo({ name: "", email: "", role: "" });
+
         Swal.fire({
           icon: "success",
           title: "¡Sesión cerrada!",
@@ -50,14 +79,17 @@ const NavigationBar = () => {
           showConfirmButton: false,
         });
 
-        router.push("/");
+        // Redirigir al login
+        setTimeout(() => {
+          router.push("/chat1");
+        }, 1500);
+
       } catch (error) {
         console.error("Logout error:", error);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text:
-            error instanceof Error ? error.message : "Error al cerrar sesión",
+          text: error instanceof Error ? error.message : "Error al cerrar sesión",
           timer: 3000,
           showConfirmButton: false,
         });
@@ -82,10 +114,23 @@ const NavigationBar = () => {
       >
         {/* User Info */}
         <div className="mt-6 px-4">
-          <div className="w-full flex items-center justify-start bg-blue-600 p-3 rounded-md">
-            <span className="text-sm font-medium truncate">
-              {toTitleCase(name)}
-            </span>
+          <div className="w-full flex flex-col bg-blue-600 p-3 rounded-md">
+            <div className="flex items-center mb-2">
+              <User className="h-5 w-5 mr-2" />
+              <span className="text-sm font-medium truncate">
+                {userInfo.name ? toTitleCase(userInfo.name) : "Usuario"}
+              </span>
+            </div>
+            {userInfo.email && (
+              <span className="text-xs text-blue-200 truncate">
+                {userInfo.email}
+              </span>
+            )}
+            {userInfo.role && (
+              <span className="text-xs bg-blue-500 px-2 py-1 rounded-full mt-1 w-fit">
+                {userInfo.role}
+              </span>
+            )}
           </div>
         </div>
 
@@ -125,7 +170,7 @@ const NavigationBar = () => {
         {sidebarOpen ? (
           <ChevronRight size={18} className="mr-1" />
         ) : (
-          <ChevronLeft size={18}  className="mr-1" />
+          <ChevronLeft size={18} className="mr-1" />
         )}
       </button>
     </>
