@@ -14,7 +14,7 @@ const Header = () => {
   return (
     <>
       {/* Header container */}
-      <div className="bg-white border-b border-gray-200 shadow-sm py-3 px-4 md:px-6 relative z-50">
+      <div className="bg-white border-b border-gray-200 shadow-sm py-3 px-4 md:px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Desktop Header */}
           <div className="hidden md:flex justify-between items-center">
