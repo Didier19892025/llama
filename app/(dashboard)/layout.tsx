@@ -1,27 +1,30 @@
-import Header from "@/components/Header"
+"use client";
+
+import { useState, ReactElement, cloneElement } from "react";
+import Header from "@/components/Header";
 import NavigationBar from "@/components/NavigationBar";
+import Chat from "@/components/Chat";
 
-import { FC, PropsWithChildren } from "react"
+interface AdminLayoutProps {
+  children: ReactElement;  // asumo que children es <Chat />
+}
 
+const AdminLayout = ({ children }: AdminLayoutProps) => {
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
-const AdminLayout: FC<PropsWithChildren> = ({ children }) => {
   return (
     <div className="flex flex-col h-screen w-full bg-gray-100 overflow-hidden">
-  {/* Header arriba */}
-  <Header />
-
-  {/* Contenido principal: Sidebar izquierda + contenido */}
-  <div className="flex flex-1 overflow-hidden">
-    {/* Sidebar izquierda */}
-    <NavigationBar />
-
-    {/* Contenido principal a la derecha */}
-    <main className="flex-1 overflow-y-auto">
-      {children}
-    </main>
-  </div>
-</div>
-
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <NavigationBar
+          currentConversationId={currentConversationId}
+          onSelectConversation={(id) => setCurrentConversationId(id)}
+        />
+          <main className="flex-1 overflow-y-auto">
+          <Chat conversationId={currentConversationId} />
+        </main>
+      </div>
+    </div>
   );
 };
 

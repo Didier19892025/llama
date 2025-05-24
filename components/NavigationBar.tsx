@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   LogOut,
-  Plus,
   ChevronLeft,
   Menu,
   MessageSquare,
@@ -20,10 +19,8 @@ interface Conversation {
   updated_at: string;
 }
 
-
 interface NavigationBarProps {
   onSelectConversation?: (conversationId: string) => void;
-  onNewConversation?: () => void;
   currentConversationId?: string | null;
 }
 
@@ -34,11 +31,7 @@ const NavigationBar = ({
   const router = useRouter();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    name: "",
-    email: "",
-    role: "",
-  });
+  const [userInfo, setUserInfo] = useState({ name: "", email: "", role: "" });
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
@@ -63,12 +56,7 @@ const NavigationBar = ({
 
     fetchConversations();
 
-    const userData = {
-      name: userId,
-      email: userId,
-      role: "user",
-    };
-    setUserInfo(userData);
+    setUserInfo({ name: userId, email: userId, role: "user" });
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -96,105 +84,85 @@ const NavigationBar = ({
     }
   };
 
-
-
-
-  const handleSelectConversation = (conversationId: string) => {
-    if (onSelectConversation) {
-      onSelectConversation(conversationId);
-    }
+  const handleSelectConversation = (id: string) => {
+    if (onSelectConversation) onSelectConversation(id);
   };
 
   return (
-    <>
-      <div
-        className={`fixed top-0 left-0 h-full z-50 bg-custom-blue text-white border-r shadow-lg flex flex-col transition-all duration-300 ease-in-out
-          ${sidebarOpen ? "w-80" : "w-16"}`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
-          <button onClick={toggleSidebar} className="text-white">
-            {sidebarOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
-          </button>
-          {sidebarOpen && (
-            <span className="text-sm font-semibold">Conversaciones</span>
-          )}
-        </div>
+    <div
+      className={`fixed top-0 left-0 h-full z-50 bg-custom-blue text-white border-r shadow-lg flex flex-col transition-all duration-300 ease-in-out ${
+        sidebarOpen ? "w-80" : "w-16"
+      }`}
+    >
+      <div className="flex items-center justify-between p-4 border-b border-white/20">
+        <button onClick={toggleSidebar} className="text-white">
+          {sidebarOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
+        </button>
+        {sidebarOpen && <span className="text-sm font-semibold">Conversaciones</span>}
+      </div>
 
+      {sidebarOpen && (
+        <div className="p-4">
+          <div className="bg-blue-600 p-3 rounded-md space-y-1">
+            <div className="flex items-center">
+              <User className="h-4 w-4 mr-2" />
+              <span className="text-sm font-medium truncate">{userInfo.name || "Usuario"}</span>
+            </div>
+            <span className="text-xs text-blue-200 truncate">{userInfo.email}</span>
+            <span className="text-xs bg-blue-500 px-2 py-1 rounded-full w-fit">{userInfo.role}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto p-2">
         {sidebarOpen && (
-          <div className="p-4">
-            <div className="bg-blue-600 p-3 rounded-md space-y-1">
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-2" />
-                <span className="text-sm font-medium truncate">
-                  {userInfo.name || "Usuario"}
-                </span>
-              </div>
-              <span className="text-xs text-blue-200 truncate">
-                {userInfo.email}
-              </span>
-              <span className="text-xs bg-blue-500 px-2 py-1 rounded-full w-fit">
-                {userInfo.role}
+          <>
+            <div className="flex items-center justify-between mb-3 px-2">
+              <span className="text-xs font-semibold text-blue-200 uppercase tracking-wide">
+                Historial ({conversations.length})
               </span>
             </div>
-          </div>
-        )}
 
-       
-
-        <div className="flex-1 overflow-y-auto p-2">
-          {sidebarOpen && (
-            <>
-              <div className="flex items-center justify-between mb-3 px-2">
-                <span className="text-xs font-semibold text-blue-200 uppercase tracking-wide">
-                  Historial ({conversations.length})
-                </span>
+            {conversations.length === 0 ? (
+              <div className="text-center text-blue-300 py-8">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-xs">No hay conversaciones guardadas</p>
+                <p className="text-xs mt-1 opacity-75">Inicia un nuevo chat</p>
               </div>
-
-              {conversations.length === 0 ? (
-                <div className="text-center text-blue-300 py-8">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs">No hay conversaciones guardadas</p>
-                  <p className="text-xs mt-1 opacity-75">Inicia un nuevo chat</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {conversations.map((conversation) => (
-                    <div
-                      key={conversation.id}
-                      onClick={() => handleSelectConversation(conversation.id)}
-                      className={`group p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                        currentConversationId === conversation.id
-                          ? "bg-blue-600 border-l-4 border-blue-300"
-                          : "hover:bg-blue-700"
-                      }`}
-                    >
-                      <div className="flex items-center">
-                        <MessageSquare className="h-4 w-4 mr-2 text-blue-300" />
-                        <span className="text-sm font-medium truncate">
-                          {conversation.title}
-                        </span>
-                      </div>
+            ) : (
+              <div className="space-y-1">
+                {conversations.map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    onClick={() => handleSelectConversation(conversation.id)}
+                    className={`group p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                      currentConversationId === conversation.id
+                        ? "bg-blue-600 border-l-4 border-blue-300"
+                        : "hover:bg-blue-700"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <MessageSquare className="h-4 w-4 mr-2 text-blue-300" />
+                      <span className="text-sm font-medium truncate">{conversation.title}</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="p-2 mb-4 border-t border-white/20">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center p-2 hover:text-red-300 rounded-lg transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            {sidebarOpen && (
-              <span className="ml-3 text-sm">Cerrar Sesión</span>
+                  </div>
+                ))}
+              </div>
             )}
-          </button>
-        </div>
+          </>
+        )}
       </div>
-    </>
+
+      <div className="p-2 mb-4 border-t border-white/20">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center p-2 hover:text-red-300 rounded-lg transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          {sidebarOpen && <span className="ml-3 text-sm">Cerrar Sesión</span>}
+        </button>
+      </div>
+    </div>
   );
 };
 

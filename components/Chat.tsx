@@ -1,87 +1,111 @@
-"use client"; // Necesario en Next.js para indicar que este componente usa funcionalidades del cliente (como hooks)
+"use client";
 
-import { useChat } from '../hooks/useChat'; // Importamos nuestro hook personalizado
-import { MessageBubble } from '../components/MessageBubble'; // Burbuja de mensaje
-import { ChatInput } from '../components/ChatInput'; // Campo de entrada de texto
-import { useEffect, useRef, useState } from 'react'; // Hooks de React
-import { TypingIndicator } from './TypingIndicator'; // Componente para mostrar "escribiendo..."
+import { useChat } from "../hooks/useChat";
+import { MessageBubble } from "../components/MessageBubble";
+import { ChatInput } from "../components/ChatInput";
+import { useEffect, useRef, useState } from "react";
+import { TypingIndicator } from "./TypingIndicator";
 
-const Chat = () => {
-  const [prompt, setPrompt] = useState(''); // Estado local para el texto del input
-  const [username, setUsername] = useState(''); // Usuario actual (lo tomamos de cookies)
-  const textareaRef = useRef<HTMLTextAreaElement>(null); // Ref al textarea, útil para enfocar o redimensionar
+interface ChatProps {
+  conversationId: string | null;
+}
 
-  // ⚡ Al montar el componente, recuperamos el username desde las cookies
+const Chat: React.FC<ChatProps> = ({ conversationId }) => {
+  const [prompt, setPrompt] = useState("");
+  const [username, setUsername] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+   useEffect(() => {
+    if (!conversationId) {
+      return;
+    }
+
+    // Cargar mensajes para esta conversación
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}`);
+        if (!res.ok) throw new Error("Error al cargar mensajes");
+        const data = await res.json();
+        // setMessages(data); // Remove this line, as messages are managed by useChat
+        // If you want to update messages, you should do it via your useChat hook or refetch logic
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchMessages();
+  }, [conversationId]);
+  // Recuperar username de cookies al montar
   useEffect(() => {
     const getCookie = (name: string) => {
       const cookies = document.cookie.split("; ");
-      const cookie = cookies.find(c => c.startsWith(`${name}=`));
+      const cookie = cookies.find((c) => c.startsWith(`${name}=`));
       return cookie ? decodeURIComponent(cookie.split("=")[1]) : undefined;
     };
-
-    setUsername(getCookie("username") || ''); // Si no hay cookie, se queda vacío
+    setUsername(getCookie("username") || "");
   }, []);
 
-  // Hook de chat con toda la lógica que ya implementamos
+  // Hook personalizado con lógica del chat
   const {
-    messages,         // Lista de mensajes
-    isLoading,        // ¿Se está cargando respuesta?
-    isTyping,         // ¿El bot está escribiendo?
-    sendMessage,      // Función para enviar prompt
-    cancel,           // Función para cancelar envío
-    chatContainerRef, // Referencia al contenedor de scroll
+    messages,
+    isLoading,
+    isTyping,
+    sendMessage,
+    cancel,
+    chatContainerRef,
   } = useChat(username);
 
-
-  // Función para guardar conversación y mensajes en localStorage
-const handleSaveConversation = async () => {
-  if (messages.length === 0) {
-    alert('No hay mensajes para guardar');
-    return;
-  }
-
-  const conversationTitle = messages[1].content.slice(0, 30) || 'Sin título';
-
-  const newConversation = {
-    userId: username || 'anonymous', // Simulamos userId
-    title: conversationTitle,
-    messages: messages.map(msg => ({
-      sender: msg.sender,
-      content: msg.content,
-    })),
-  };
-
-  try {
-    const response = await fetch('/api/conversations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newConversation),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert('Conversación guardada con éxito!');
-    } else {
-      alert('Error guardando conversación: ' + (data.error || 'Error desconocido'));
+  // Guardar conversación en backend
+  const handleSaveConversation = async () => {
+    if (messages.length === 0) {
+      alert("No hay mensajes para guardar");
+      return;
     }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    alert('Error guardando conversación: ' + errorMessage);
-  }
-};
 
+    // Intentamos usar el contenido del primer mensaje para el título, si no un título genérico
+    const conversationTitle =
+      messages.length > 1 && messages[1].content
+        ? messages[1].content.slice(0, 30)
+        : "Sin título";
 
+    const newConversation = {
+      userId: username || "anonymous",
+      title: conversationTitle,
+      messages: messages.map((msg) => ({
+        sender: msg.sender,
+        content: msg.content,
+      })),
+    };
 
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newConversation),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("¡Conversación guardada con éxito!");
+      } else {
+        alert("Error guardando conversación: " + (data.error || "Error desconocido"));
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      alert("Error guardando conversación: " + errorMessage);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
-      
-      {/* 🧾 Área del historial del chat con scroll vertical */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden" ref={chatContainerRef}>
+      {/* Historial con scroll */}
+      <div
+        className="flex-1 overflow-y-auto overflow-x-hidden"
+        ref={chatContainerRef}
+      >
         <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
-          
-          {/* 🔁 Renderiza cada mensaje del historial */}
+          {/* Mensajes */}
           {messages.map((msg, idx) => (
             <MessageBubble
               key={idx}
@@ -91,40 +115,38 @@ const handleSaveConversation = async () => {
             />
           ))}
 
-          {/* ✍️ Muestra indicador de "escribiendo..." */}
+          {/* Indicador de escribiendo */}
           {isTyping && <TypingIndicator />}
         </div>
       </div>
 
+      {/* Botón para guardar conversación */}
+      <div className="max-w-4xl mx-auto mt-2 px-4">
+        <button
+          onClick={handleSaveConversation}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Guardar Conversación
+        </button>
+      </div>
 
-
-<div className="max-w-4xl mx-auto mt-2 px-4">
-  <button
-    onClick={handleSaveConversation}
-    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-  >
-    Guardar Conversación
-  </button>
-</div>
-
-
-
-      {/* ⌨️ Input del chat (parte inferior) */}
+      {/* Input de chat */}
       <div className="w-full px-4 py-3 bg-white shadow-md overflow-x-hidden">
         <div className="max-w-4xl mx-auto">
           <ChatInput
-            prompt={prompt}               // Texto del input
-            setPrompt={setPrompt}         // Actualizador del texto
-            onSubmit={(e: any) => {       // Al enviar formulario
+            prompt={prompt}
+            setPrompt={setPrompt}
+            onSubmit={(e: React.FormEvent) => {
               e.preventDefault();
-              if (isLoading) return cancel(); // Si está cargando, lo cancela
-              sendMessage(prompt);            // Enviar mensaje
-              setPrompt('');                  // Limpiar input
+              if (isLoading) return cancel();
+              if (prompt.trim() === "") return;
+              sendMessage(prompt);
+              setPrompt("");
             }}
-            onCancel={cancel}             // Botón de cancelar
-            isLoading={isLoading}         // Desactiva input si está cargando
-            abortController={null}        // Por ahora no usamos este prop (puede eliminarse si no se usa)
-            textareaRef={textareaRef}     // Ref al textarea
+            onCancel={cancel}
+            isLoading={isLoading}
+            abortController={null} // Puedes quitar si no usas
+            textareaRef={textareaRef}
           />
         </div>
       </div>
