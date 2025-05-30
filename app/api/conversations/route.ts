@@ -16,14 +16,16 @@ export async function POST(request: NextRequest) {
       data: {
         userId,
         title,
-        messages: {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        Message: {
           create: messages.map((msg: { sender: string; content: string }) => ({
             sender: msg.sender,
             content: msg.content,
           })),
         },
       },
-      include: { messages: true },
+      include: { Message: true },
     });
 
     return NextResponse.json({ success: true, conversation });

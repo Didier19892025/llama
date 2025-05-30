@@ -1,14 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { MenuIcon, X } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import Logo from "@/src/ui/Logo";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
 
-const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
+interface HeaderProps {
+  onToggleSidebar?: () => void;
+  sidebarOpen: boolean;
+}
+
+
+const Header = ({ onToggleSidebar, sidebarOpen }: HeaderProps) => {
+
+  const router = useRouter();
+
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Quieres cerrar sesión?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: "Cerrando sesión...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      setTimeout(() => {
+        Swal.close();
+        router.push("/chat1");
+      }, 1500);
+    }
   };
 
   return (
@@ -17,55 +46,49 @@ const Header = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm py-3 px-4 md:px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Desktop Header */}
-          <div className="hidden md:flex justify-between items-center">
-            <div>
+
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              {/* Botón para abrir/cerrar sidebar */}
+              {!sidebarOpen && (
+                <button
+                  onClick={onToggleSidebar}
+                  className="p-1 rounded-md hover:bg-gray-100  border-gray-200/70 border focus:outline-none transition-colors"
+                  aria-label="Toggle sidebar"
+                >
+                  <Menu className="h-5 w-5 text-gray-600/60 " />
+                </button>
+              )}
               <Logo />
             </div>
-            <div className="text-right">
-              <h1 className="text-md font-bold text-custom-blue">
-                Your intelligent conversation assistant
-              </h1>
-              <div className="flex justify-end gap-1.5">
-                <p className="text-xs subtitle">Powered by</p>
-                <span className="text-xs text-gray-500">Llama 3.0</span>
+
+            <div className="text-right flex items-center gap-10">
+              <div className=" hidden md:flex flex-col items-end">
+                <h1 className="text-md font-bold text-blue-700/80">
+                  Your intelligent conversation assistant
+                </h1>
+                <div className="flex justify-end gap-1.5">
+                  <p className="text-xs text-gray-600">Powered by</p>
+                  <span className="text-xs text-gray-500">Llama 3.0</span>
+                </div>
               </div>
+              <button
+                onClick={handleLogout}
+                className={`text-blue-700 transition-colors duration-200 hover:text-red-400
+                }`}
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
             </div>
+
           </div>
 
-          {/* Mobile Header */}
-          <div className="flex md:hidden justify-between items-center">
-            <Logo />
-            <button
-              className="p-2 rounded-md focus:outline-none"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <X className="h-6 w-6 text-gray-600" />
-              ) : (
-                <MenuIcon className="h-6 w-6 text-gray-600" />
-              )}
-            </button>
-          </div>
+
+
+
         </div>
       </div>
 
-      {/* Mobile Menu - absolute and separate */}
-      <div
-        className={`md:hidden absolute top-[60px] left-0 w-full bg-white border-t border-gray-100 shadow transition-all duration-300 overflow-hidden z-40 ${
-          isMenuOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="py-3 text-center">
-          <h1 className="text-md font-bold text-custom-blue">
-            Your intelligent conversation assistant
-          </h1>
-          <div className="flex justify-center gap-1.5 mt-1">
-            <p className="text-xs subtitle">Powered by</p>
-            <span className="text-xs text-gray-500">Llama 3.0</span>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
